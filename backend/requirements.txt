@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+httpx
+python-jose[cryptography]
+python-dotenv
+gunicorn
+transformers==4.28.1
+sentencepiece==0.1.99
+protobuf==3.20.0
+torch

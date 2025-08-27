@@ -1,0 +1,5 @@
+venv\Scripts\activate
+
+uvicorn main:app --reload
+
+pip install protobuf==3.20.0
