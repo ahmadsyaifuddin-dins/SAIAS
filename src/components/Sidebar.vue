@@ -1,11 +1,12 @@
 <script setup>
 import { computed } from 'vue';
 
+// Terima props dari App.vue
 const props = defineProps({
   isOpen: Boolean,
   conversations: Array,
   currentId: String,
-  user: Object // <--- Tambahan: Menerima data user dari App.vue
+  user: Object
 });
 
 const emit = defineEmits(['toggle', 'selectChat', 'newChat', 'deleteChat', 'logout']);
@@ -21,13 +22,18 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
 };
 
-// Ambil inisial nama (Misal: Ahmad Syaifuddin -> A)
+// 1. Ambil Inisial (Fallback kalau gak ada foto)
 const userInitial = computed(() => {
   const name = props.user?.user_metadata?.full_name || props.user?.email || '?';
   return name.charAt(0).toUpperCase();
 });
 
-// Ambil nama tampilan
+// 2. Ambil Foto Profil dari Google
+const avatarUrl = computed(() => {
+  return props.user?.user_metadata?.avatar_url;
+});
+
+// 3. Ambil Nama User
 const displayName = computed(() => {
   return props.user?.user_metadata?.full_name || props.user?.email?.split('@')[0] || 'User';
 });
@@ -68,7 +74,7 @@ const displayName = computed(() => {
         :class="currentId === chat.id ? 'bg-gray-800 text-white border border-gray-700' : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-200'"
         @click="$emit('selectChat', chat.id)"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-70"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-70"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2-2z"></path></svg>
         <div class="flex-1 min-w-0 overflow-hidden">
           <p class="truncate text-sm font-medium">{{ chat.title }}</p>
           <p class="text-[10px] opacity-60 mt-0.5">{{ formatDate(chat.created_at) }}</p>
@@ -86,7 +92,17 @@ const displayName = computed(() => {
     <div class="p-4 border-t border-gray-800 bg-gray-900/95">
       <div class="flex items-center gap-3 p-2 rounded-xl bg-gray-800 border border-gray-700">
         
-        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-xs font-bold text-white shadow-sm">
+        <img 
+          v-if="avatarUrl" 
+          :src="avatarUrl" 
+          alt="Avatar"
+          class="w-8 h-8 rounded-lg object-cover border border-gray-600 bg-gray-700"
+        />
+        
+        <div 
+          v-else
+          class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-xs font-bold text-white shadow-sm"
+        >
           {{ userInitial }}
         </div>
 
