@@ -124,6 +124,14 @@ onMounted(() => {
   });
 });
 
+const suggestionPrompts = [
+  "Siapa penciptamu?",
+  "Bagaimana kamu dibuat?",
+  "Teknologi apa yang kamu gunakan?",
+  "Jelaskan apa itu Laravel",
+  "Tips coding agar rapi"
+];
+
 const handleLogout = async () => {
   // 1. Tampilkan Konfirmasi Dulu
   const isConfirmed = await useConfirm(
@@ -281,12 +289,28 @@ const handleNewMessage = async (userMsg) => {
       </header>
 
       <main ref="chatContainer" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 custom-scrollbar">
-        <div v-if="chatHistory.length === 0" class="h-full flex flex-col items-center justify-center text-gray-600 opacity-60">
-          <div class="bg-gray-800 p-4 rounded-full mb-4 animate-bounce">
-            <img src="/vite.svg" alt="Logo" class="w-10 h-10 opacity-50 grayscale">
+        <div v-if="chatHistory.length === 0" class="h-full flex flex-col items-center justify-center text-gray-600 p-4">
+          
+          <div class="flex flex-col items-center mb-8 opacity-60">
+            <div class="bg-gray-800 p-4 rounded-full mb-4 animate-bounce">
+              <img src="/vite.svg" alt="Logo" class="w-10 h-10 opacity-50 grayscale">
+            </div>
+            <p class="font-medium text-lg">Mulai Topik Baru</p>
+            <p class="text-sm">Pilih topik di bawah atau ketik pesanmu...</p>
           </div>
-          <p class="font-medium text-lg">Mulai Topik Baru</p>
-          <p class="text-sm">Tanyakan sesuatu pada SAIAS...</p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl">
+            <button 
+              v-for="(text, index) in suggestionPrompts" 
+              :key="index"
+              @click="handleNewMessage(text)"
+              class="px-4 py-3 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-emerald-500/50 rounded-xl text-sm text-gray-300 hover:text-white text-left transition-all duration-200 group flex justify-between items-center"
+            >
+              <span>{{ text }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-0 group-hover:opacity-100 text-emerald-400 transition-opacity transform translate-x-[-5px] group-hover:translate-x-0"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+          </div>
+
         </div>
 
         <ChatBubble v-for="(msg, index) in chatHistory" :key="index" :message="msg" />
