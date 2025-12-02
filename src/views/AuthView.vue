@@ -7,7 +7,7 @@ import { signInWithGoogle } from '../lib/supabase';
     <div class="bg-gray-800 p-8 rounded-2xl shadow-xl border border-gray-700 w-full max-w-md text-center">
       <div class="mb-6">
         <h1 class="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-500 bg-clip-text text-transparent mb-2">
-          SAIAS v2.2.0
+          SAIAS v2.5.0
         </h1>
         <p class="text-gray-400 text-sm">Masuk untuk menyimpan riwayat percakapan</p>
       </div>
