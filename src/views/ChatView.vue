@@ -80,9 +80,9 @@ const headerData = computed(() => {
 const headerTitle = computed(() => {
   if (activeProjectId.value) {
     const proj = projects.value.find(p => p.id === activeProjectId.value);
-    return proj ? `${projectIcons[proj.icon].path} ${proj.name}` : 'SAIAS v2';
+    return proj ? `${projectIcons[proj.icon].path} ${proj.name}` : 'SAIAS v2.9.0';
   }
-  return currentChatTitle.value || 'SAIAS v2';
+  return currentChatTitle.value || 'SAIAS v2.9.0';
 });
 
 const scrollToBottom = async () => {

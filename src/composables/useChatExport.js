@@ -107,7 +107,7 @@ export function useChatExport() {
     html += `
         </div>
         <div class="mt-12 text-center text-gray-500 text-xs border-t border-gray-800 pt-4">
-          Exported from SAIAS v2 • Personal AI Assistant
+          Exported from SAIAS v2.9.0 • Personal AI Assistant
         </div>
       </body>
       </html>`;

@@ -27,7 +27,7 @@ const emit = defineEmits([
       </button>
       
       <div class="overflow-hidden">
-        <h1 class="font-bold text-emerald-400 text-lg leading-tight">SAIAS v2</h1>
+        <h1 class="font-bold text-emerald-400 text-lg leading-tight">SAIAS v2.9.0</h1>
         
         <div v-if="title" class="flex items-center gap-1.5 text-[10px] text-gray-500 mt-0.5">
           <span v-if="isSvg" class="text-emerald-500 shrink-0">
