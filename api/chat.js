@@ -51,15 +51,29 @@ export default async function handler(req, res) {
 
     const conversation = [systemPrompt, ...cleanHistory, { role: 'user', content: message }];
     const selectedModel = model || 'llama-3.3-70b-versatile';
-
-    // 1. Request ke Groq dengan mode STREAM
-    const stream = await groq.chat.completions.create({
+    const isO1 = selectedModel.includes('o1-') 
+          || selectedModel.includes('openai/o1') 
+          || selectedModel.includes('gpt-oss');
+    // Buat payload dasar
+    const payload = {
       messages: conversation,
       model: selectedModel,
-      temperature: 0.7,
-      max_tokens: 1024,
-      stream: true, // <--- PENTING!
-    });
+      temperature: 0.5, // o1 biasanya butuh temperature 1, tapi 0.7 aman
+      max_tokens: 8192,
+      stream: true,
+    };
+
+    // Tambahkan parameter khusus JIKA o1
+    // Note: Model o1 kadang tidak support 'temperature' custom, 
+    if (isReasoningModel) {
+      payload.reasoning_effort = "medium"; 
+      
+      // Tapi 0.5 juga biasanya aman. Kalau mau strict, uncomment baris bawah ini:
+      // payload.temperature = 1; 
+    }
+
+    // Eksekusi Request
+    const stream = await groq.chat.completions.create(payload);
 
     // 2. Siapkan Header untuk Streaming Teks
     // Kita pakai 'Transfer-Encoding: chunked' secara implisit dengan res.write
