@@ -134,7 +134,7 @@ watch(() => route.params.id, (newId) => {
 const handleNewMessage = async (userMsg) => {
   if (!user.value) return;
 
-  // SKENARIO A: CHAT BARU
+  // 1. LOGIC NEW CHAT (Sama seperti sebelumnya)
   if (!currentConversationId.value) {
     const title = userMsg.length > 30 ? userMsg.substring(0, 30) + '...' : userMsg;
     const { data: newChat, error } = await supabase
@@ -143,13 +143,12 @@ const handleNewMessage = async (userMsg) => {
       .select().single();
       
     if (error) return;
-    
     router.replace(`/c/${newChat.id}`);
     currentConversationId.value = newChat.id;
     await loadConversations();
   }
 
-  // SIMPAN PESAN USER
+  // 2. SIMPAN PESAN USER KE DB
   const { error: errUser } = await supabase.from('messages').insert({
     user_id: user.value.id,
     conversation_id: currentConversationId.value,
@@ -158,6 +157,7 @@ const handleNewMessage = async (userMsg) => {
   });
   if (errUser) return;
 
+  // Update UI User
   chatHistory.value.push({ role: 'user', content: userMsg });
   scrollToBottom();
   isLoading.value = true;
@@ -168,28 +168,56 @@ const handleNewMessage = async (userMsg) => {
     const userApiKey = localStorage.getItem('user_groq_key'); 
     const userModel = localStorage.getItem('user_groq_model');
 
+    // 3. FETCH DENGAN STREAM READER
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: userMsg, history: cleanHistory, apiKey: userApiKey, model: userModel }),
     });
-    const data = await response.json();
-    const aiReply = data.reply || 'Maaf, terjadi error server.';
 
+    if (!response.ok) throw new Error('Network error');
+
+    // SIAPKAN BUBBLE KOSONG UNTUK AI
+    // Kita push dulu bubble kosong, nanti isinya kita update pelan-pelan
+    const aiMessageIndex = chatHistory.value.push({ role: 'assistant', content: '' }) - 1;
+    let fullAiResponse = ''; // Penampung teks lengkap
+
+    // BACA STREAM
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      // Decode chunk (binary) ke text
+      const chunkText = decoder.decode(value, { stream: true });
+      
+      // Update variabel penampung
+      fullAiResponse += chunkText;
+      
+      // Update UI secara Real-time (Efek Mengetik)
+      chatHistory.value[aiMessageIndex].content = fullAiResponse;
+      
+      // Scroll dikit-dikit biar ngikutin teks
+      scrollToBottom();
+    }
+
+    // 4. STREAM SELESAI -> BARU SIMPAN KE DB
     await supabase.from('messages').insert({
       user_id: user.value.id,
       conversation_id: currentConversationId.value,
       role: 'assistant',
-      content: aiReply
+      content: fullAiResponse // Simpan teks utuh
     });
-    chatHistory.value.push({ role: 'assistant', content: aiReply });
     
+    // Update timestamp conversation
     await supabase.from('conversations').update({ updated_at: new Date() }).eq('id', currentConversationId.value);
     loadConversations();
 
   } catch (e) {
     console.error(e);
-    chatHistory.value.push({ role: 'assistant', content: 'Gagal terhubung ke AI.' });
+    chatHistory.value.push({ role: 'assistant', content: 'Maaf, terjadi kesalahan koneksi.' });
   } finally {
     isLoading.value = false;
     scrollToBottom();

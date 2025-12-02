@@ -2,6 +2,7 @@
 import Groq from 'groq-sdk';
 
 export default async function handler(req, res) {
+  // Setup CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -11,18 +12,18 @@ export default async function handler(req, res) {
   );
 
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
-const { message, history, apiKey, model } = req.body;
-const activeKey = apiKey || process.env.GROQ_API_KEY;
+  const { message, history, apiKey, model } = req.body;
+  const activeKey = apiKey || process.env.GROQ_API_KEY;
 
   if (!activeKey) {
-    return res.status(500).json({ error: 'Server configuration error: No API Key found.' });
+    return res.status(500).json({ error: 'No API Key found.' });
   }
 
   try {
     const groq = new Groq({ apiKey: activeKey });
     
+    // System Prompt (Persona Gen Z)
     const systemPrompt = {
       role: 'system',
       content: `
@@ -48,25 +49,43 @@ const activeKey = apiKey || process.env.GROQ_API_KEY;
       content: msg.content
     }));
 
-    // Gabungkan data yang sudah bersih
     const conversation = [systemPrompt, ...cleanHistory, { role: 'user', content: message }];
-
-    // 2. Gunakan model dari parameter, kalau kosong pakai Default Llama 3.3
     const selectedModel = model || 'llama-3.3-70b-versatile';
 
-    const completion = await groq.chat.completions.create({
+    // 1. Request ke Groq dengan mode STREAM
+    const stream = await groq.chat.completions.create({
       messages: conversation,
       model: selectedModel,
       temperature: 0.7,
       max_tokens: 1024,
+      stream: true, // <--- PENTING!
     });
 
-    const reply = completion.choices[0]?.message?.content || 'Maaf, saya tidak bisa memproses permintaan itu.';
-    
-    return res.status(200).json({ reply });
+    // 2. Siapkan Header untuk Streaming Teks
+    // Kita pakai 'Transfer-Encoding: chunked' secara implisit dengan res.write
+    res.writeHead(200, {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Transfer-Encoding': 'chunked'
+    });
+
+    // 3. Alirkan data (Piping)
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || '';
+      if (content) {
+        res.write(content); // Kirim potongan teks ke frontend
+      }
+    }
+
+    // 4. Tutup koneksi saat selesai
+    res.end();
 
   } catch (error) {
     console.error("Groq Error:", error);
-    return res.status(500).json({ error: error.message });
+    // Kalau error sebelum streaming mulai, kirim JSON error
+    if (!res.headersSent) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.end(); // Tutup paksa kalau error di tengah jalan
+    }
   }
 }
