@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, nextTick } from 'vue';
 
 // Terima props dari App.vue
 const props = defineProps({
@@ -9,7 +9,13 @@ const props = defineProps({
   user: Object
 });
 
-const emit = defineEmits(['toggle', 'selectChat', 'newChat', 'deleteChat', 'logout']);
+// Update Emits: Tambahkan 'pinChat' dan 'renameChat'
+const emit = defineEmits(['toggle', 'selectChat', 'newChat', 'deleteChat', 'logout', 'pinChat', 'renameChat']);
+
+// --- STATE EDIT JUDUL (BARU) ---
+const editingId = ref(null);
+const editTitle = ref('');
+const editInputRef = ref(null);
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -22,21 +28,42 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
 };
 
-// 1. Ambil Inisial
+// --- LOGIC USER PROFILE ---
 const userInitial = computed(() => {
   const name = props.user?.user_metadata?.full_name || props.user?.email || '?';
   return name.charAt(0).toUpperCase();
 });
 
-// 2. Ambil Foto Profil
 const avatarUrl = computed(() => {
   return props.user?.user_metadata?.avatar_url;
 });
 
-// 3. Ambil Nama User
 const displayName = computed(() => {
   return props.user?.user_metadata?.full_name || props.user?.email?.split('@')[0] || 'User';
 });
+
+// --- LOGIC FUNGSI EDIT & SAVE (BARU) ---
+const startEditing = (chat) => {
+  editingId.value = chat.id;
+  editTitle.value = chat.title;
+  nextTick(() => {
+    if (editInputRef.value && editInputRef.value[0]) {
+      editInputRef.value[0].focus();
+    }
+  });
+};
+
+const saveTitle = (id) => {
+  if (editingId.value === id && editTitle.value.trim()) {
+    emit('renameChat', id, editTitle.value.trim());
+  }
+  cancelEditing();
+};
+
+const cancelEditing = () => {
+  editingId.value = null;
+  editTitle.value = '';
+};
 </script>
 
 <template>
@@ -71,21 +98,44 @@ const displayName = computed(() => {
         v-for="chat in conversations" 
         :key="chat.id"
         class="group relative flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer transition-all duration-200"
-        :class="currentId === chat.id ? 'bg-gray-800 text-white border border-gray-700' : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-200'"
+        :class="[
+          currentId === chat.id ? 'bg-gray-800 text-white border border-gray-700' : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-200',
+          chat.is_pinned ? 'bg-gray-800/30 border border-emerald-900/30' : ''
+        ]"
         @click="$emit('selectChat', chat.id)"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-70"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2-2z"></path></svg>
-        <div class="flex-1 min-w-0 overflow-hidden">
+        <div class="shrink-0">
+          <svg v-if="chat.is_pinned" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-500 -rotate-45"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>
+          <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-70"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </div>
+
+        <div v-if="editingId !== chat.id" class="flex-1 min-w-0 overflow-hidden">
           <p class="truncate text-sm font-medium">{{ chat.title }}</p>
           <p class="text-[10px] opacity-60 mt-0.5">{{ formatDate(chat.created_at) }}</p>
         </div>
-        <button 
-          @click.stop="$emit('deleteChat', chat.id)"
-          class="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 hover:bg-red-500/20 hover:text-red-400 rounded transition text-gray-500"
-          title="Hapus chat ini"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-        </button>
+
+        <input 
+          v-else
+          ref="editInputRef"
+          v-model="editTitle"
+          @click.stop
+          @keydown.enter="saveTitle(chat.id)"
+          @blur="saveTitle(chat.id)"
+          @keydown.esc="cancelEditing"
+          class="flex-1 bg-gray-900 border border-emerald-500 rounded px-2 py-1 text-sm text-white focus:outline-none min-w-0"
+        />
+
+        <div v-if="editingId !== chat.id" class="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+          <button @click.stop="$emit('pinChat', chat)" class="p-1.5 hover:bg-emerald-500/20 hover:text-emerald-400 rounded transition" :title="chat.is_pinned ? 'Unpin' : 'Pin Chat'">
+             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>
+          </button>
+          <button @click.stop="startEditing(chat)" class="p-1.5 hover:bg-blue-500/20 hover:text-blue-400 rounded transition" title="Ganti Nama">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+          </button>
+          <button @click.stop="$emit('deleteChat', chat.id)" class="p-1.5 hover:bg-red-500/20 hover:text-red-400 rounded transition" title="Hapus">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          </button>
+        </div>
       </div>
     </div>
 

@@ -24,7 +24,7 @@ const emit = defineEmits([
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
       </button>
       <div>
-        <h1 class="font-bold text-emerald-400 text-lg leading-tight">SAIAS v2.5.0</h1>
+        <h1 class="font-bold text-emerald-400 text-lg leading-tight">SAIAS v2.8.0</h1>
         <p v-if="title" class="text-[10px] text-gray-500 truncate max-w-[150px] md:max-w-xs">
           {{ title }}
         </p>

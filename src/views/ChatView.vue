@@ -52,7 +52,8 @@ const loadConversations = async () => {
     .from('conversations')
     .select('*')
     .eq('is_deleted', false)
-    .order('updated_at', { ascending: false });
+    .order('is_pinned', { ascending: false }) // Prioritas 1: Pin
+    .order('updated_at', { ascending: false }); // Prioritas 2: Tanggal
   if (!error) conversations.value = data || [];
 };
 
@@ -90,6 +91,41 @@ const handleDeleteChat = async (id) => {
     if (currentConversationId.value === id) router.push('/'); 
   } else {
     useAlert("Gagal", "Terjadi kesalahan.", "error");
+  }
+};
+
+const handlePinChat = async (chat) => {
+  const newStatus = !chat.is_pinned; // Toggle status
+  // Update UI Optimistic (biar cepet)
+  chat.is_pinned = newStatus;
+  
+  const { error } = await supabase
+    .from('conversations')
+    .update({ is_pinned: newStatus })
+    .eq('id', chat.id);
+
+  if (error) {
+    chat.is_pinned = !newStatus; // Revert kalau gagal
+    useAlert("Gagal", "Gagal mem-pin chat.", "error");
+  } else {
+    loadConversations(); // Reload untuk sort ulang
+  }
+};
+
+// HANDLER: RENAME CHAT
+const handleRenameChat = async (id, newTitle) => {
+  // Update Optimistic
+  const chat = conversations.value.find(c => c.id === id);
+  if (chat) chat.title = newTitle;
+
+  const { error } = await supabase
+    .from('conversations')
+    .update({ title: newTitle })
+    .eq('id', id);
+
+  if (error) {
+    useAlert("Gagal", "Gagal mengganti nama chat.", "error");
+    loadConversations(); // Revert
   }
 };
 
@@ -223,6 +259,8 @@ watch(() => route.params.id, (newId) => {
       @selectChat="selectChat" 
       @deleteChat="handleDeleteChat"
       @logout="handleLogout"
+      @pinChat="handlePinChat"       
+      @renameChat="handleRenameChat"
     />
 
     <div class="flex-1 flex flex-col h-full relative w-full">
