@@ -22,13 +22,13 @@ const formatDate = (dateString) => {
   return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
 };
 
-// 1. Ambil Inisial (Fallback kalau gak ada foto)
+// 1. Ambil Inisial
 const userInitial = computed(() => {
   const name = props.user?.user_metadata?.full_name || props.user?.email || '?';
   return name.charAt(0).toUpperCase();
 });
 
-// 2. Ambil Foto Profil dari Google
+// 2. Ambil Foto Profil
 const avatarUrl = computed(() => {
   return props.user?.user_metadata?.avatar_url;
 });
@@ -89,6 +89,15 @@ const displayName = computed(() => {
       </div>
     </div>
 
+    <div v-if="user?.email === 'dinsdev.10@gmail.com'" class="px-4 pt-2 pb-2 mt-auto border-t border-gray-800">
+      <router-link 
+        to="/admin" 
+        class="flex items-center gap-3 px-3 py-2 bg-red-900/30 hover:bg-red-900/50 text-red-200 rounded-lg transition border border-red-800/50 group"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="group-hover:scale-110 transition-transform"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        <span class="text-xs font-bold tracking-wide uppercase">Admin Panel</span>
+      </router-link>
+    </div>
     <div class="p-4 border-t border-gray-800 bg-gray-900/95">
       <div class="flex items-center gap-3 p-2 rounded-xl bg-gray-800 border border-gray-700">
         
