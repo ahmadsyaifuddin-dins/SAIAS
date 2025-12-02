@@ -83,28 +83,35 @@ onUpdated(addCopyButtons);
 </template>
 
 <style>
-/* CSS Markdown (Sama kayak sebelumnya + Sedikit perbaikan Pre) */
+/* --- BASE MARKDOWN STYLE --- */
 .markdown-body p { margin-bottom: 0.75em; }
 .markdown-body p:last-child { margin-bottom: 0; }
 
+.markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75em; }
+.markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75em; }
+.markdown-body strong { font-weight: 700; color: #a7f3d0; } /* Emerald-200 */
+.markdown-body a { color: #34d399; text-decoration: underline; }
+
+/* --- CODE BLOCKS (Tetap Sama) --- */
 .markdown-body pre {
-  background-color: #111827 !important; /* Hitam pekat */
+  background-color: #111827 !important; /* Gray-900 */
   padding: 1rem;
   border-radius: 0.5rem;
   overflow-x: auto;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-  border: 1px solid #374151;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid #374151; /* Gray-700 */
   font-family: monospace;
-  position: relative; /* Penting buat tombol copy absolute */
+  position: relative;
 }
 
 .markdown-body code {
-  background-color: rgba(0, 0, 0, 0.2);
-  padding: 0.1rem 0.3rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 0.2rem 0.4rem;
   border-radius: 0.25rem;
   font-family: monospace;
   font-size: 0.9em;
+  color: #e5e7eb;
 }
 
 .markdown-body pre code {
@@ -113,8 +120,50 @@ onUpdated(addCopyButtons);
   color: #e5e7eb;
 }
 
-.markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75em; }
-.markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75em; }
-.markdown-body strong { font-weight: 700; color: #a7f3d0; }
-.markdown-body a { color: #34d399; text-decoration: underline; }
+/* --- TABLE STYLING (UPGRADE BARU DISINI) --- */
+
+/* 1. Wrapper agar bisa di-scroll horizontal di Mobile */
+.markdown-body table {
+  display: block;          /* Ubah jadi block element */
+  width: 100%;             /* Lebar penuh */
+  overflow-x: auto;        /* Scroll samping jika kepanjangan */
+  -webkit-overflow-scrolling: touch; /* Smooth scroll di iOS */
+  border-collapse: collapse;
+  margin: 1.5rem 0;        /* Jarak atas bawah */
+  border-radius: 0.5rem;   /* Sudut melengkung */
+  border: 1px solid #374151; /* Border luar */
+}
+
+/* 2. Styling Header Table (Judul Kolom) */
+.markdown-body th {
+  background-color: #1f2937; /* Gray-800 (Lebih gelap) */
+  color: #34d399;            /* Emerald-400 (Warna Aksen) */
+  font-weight: 600;
+  text-align: left;
+  padding: 0.75rem 1rem;     /* Padding lega */
+  border-bottom: 2px solid #374151;
+  white-space: nowrap;       /* Teks Header jangan turun baris (biar rapi) */
+}
+
+/* 3. Styling Isi Table (Sel) */
+.markdown-body td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #374151; /* Garis pemisah tipis */
+  color: #d1d5db; /* Gray-300 */
+  min-width: 120px; /* Minimal lebar kolom agar tidak gepeng di HP */
+}
+
+/* 4. Zebra Striping (Warna selang-seling) */
+.markdown-body tr:nth-child(even) {
+  background-color: rgba(31, 41, 55, 0.4); /* Gray-800 transparan */
+}
+
+.markdown-body tr:hover {
+  background-color: rgba(52, 211, 153, 0.05); /* Efek hover tipis emerald */
+}
+
+/* Hilangkan border bawah pada baris terakhir */
+.markdown-body tr:last-child td {
+  border-bottom: none;
+}
 </style>
