@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useAlert, useConfirm } from '../lib/useAlert';
 
 const emit = defineEmits(['close', 'clearHistory']);
 const apiKey = ref('');
@@ -15,15 +16,21 @@ const saveKey = () => {
     localStorage.setItem('user_groq_key', apiKey.value.trim());
     isSaved.value = true;
     setTimeout(() => (isSaved.value = false), 2000);
+    useAlert("Tersimpan", "API Key berhasil disimpan di browser ini.", "success");
   } else {
     localStorage.removeItem('user_groq_key');
     apiKey.value = '';
-    alert('API Key dihapus. Anda sekarang menggunakan kuota default SAIAS.');
-  }
+    useAlert("API Key Dihapus", "Anda sekarang menggunakan kuota default SAIAS.", "info");  }
 };
 
-const handleClear = () => {
-  if (confirm('Yakin ingin menghapus semua riwayat percakapan? Ini tidak bisa dibatalkan.')) {
+const handleClear = async () => {
+  const ok = await useConfirm(
+    "Hapus Semua?", 
+    "Yakin ingin menghapus SELURUH riwayat percakapan? Tindakan ini tidak bisa dibatalkan.", 
+    "error" // Warna Merah
+  );
+  
+  if (ok) {
     emit('clearHistory');
   }
 };

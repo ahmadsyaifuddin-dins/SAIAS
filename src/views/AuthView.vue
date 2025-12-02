@@ -21,7 +21,7 @@ import { signInWithGoogle } from '../lib/supabase';
       </button>
 
       <p class="mt-6 text-xs text-gray-500">
-        Dengan masuk, Anda menyetujui untuk ngobrol santai bareng AI buatan Syaifuddin.
+        Dengan masuk, Anda menyetujui untuk ngobrol santai bareng AI buatan Ahmad Syaifuddin.
       </p>
     </div>
   </div>
