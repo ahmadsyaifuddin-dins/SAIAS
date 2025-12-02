@@ -2,7 +2,7 @@
 import Groq from 'groq-sdk';
 
 export default async function handler(req, res) {
-  // Setup CORS
+  // 1. Setup CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -50,56 +50,57 @@ export default async function handler(req, res) {
     }));
 
     const conversation = [systemPrompt, ...cleanHistory, { role: 'user', content: message }];
+    
+    // 2. Tentukan Model & Cek Tipe Reasoning
     const selectedModel = model || 'llama-3.3-70b-versatile';
-    const isO1 = selectedModel.includes('o1-') 
-          || selectedModel.includes('openai/o1') 
-          || selectedModel.includes('gpt-oss');
-    // Buat payload dasar
+    
+    // Perbaikan: Deklarasikan variabel ini SEBELUM dipakai
+    const isReasoningModel = selectedModel.includes('o1-') 
+                          || selectedModel.includes('openai/o1') 
+                          || selectedModel.includes('gpt-oss');
+
+    // 3. Buat Payload Dasar
     const payload = {
       messages: conversation,
       model: selectedModel,
-      temperature: 0.5, // o1 biasanya butuh temperature 1, tapi 0.7 aman
+      temperature: 0.5, // Default aman untuk coding
       max_tokens: 8192,
       stream: true,
     };
 
-    // Tambahkan parameter khusus JIKA o1
-    // Note: Model o1 kadang tidak support 'temperature' custom, 
+    // 4. Modifikasi Payload JIKA Model Reasoning (o1 / gpt-oss)
     if (isReasoningModel) {
       payload.reasoning_effort = "medium"; 
-      
-      // Tapi 0.5 juga biasanya aman. Kalau mau strict, uncomment baris bawah ini:
+      // Opsional: Model reasoning kadang butuh temperature 1
       // payload.temperature = 1; 
     }
 
-    // Eksekusi Request
+    // 5. Eksekusi Request ke Groq
     const stream = await groq.chat.completions.create(payload);
 
-    // 2. Siapkan Header untuk Streaming Teks
-    // Kita pakai 'Transfer-Encoding: chunked' secara implisit dengan res.write
+    // 6. Siapkan Header untuk Streaming Teks
     res.writeHead(200, {
       'Content-Type': 'text/plain; charset=utf-8',
       'Transfer-Encoding': 'chunked'
     });
 
-    // 3. Alirkan data (Piping)
+    // 7. Alirkan data (Piping)
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || '';
       if (content) {
-        res.write(content); // Kirim potongan teks ke frontend
+        res.write(content); 
       }
     }
 
-    // 4. Tutup koneksi saat selesai
+    // 8. Tutup koneksi saat selesai
     res.end();
 
   } catch (error) {
     console.error("Groq Error:", error);
-    // Kalau error sebelum streaming mulai, kirim JSON error
     if (!res.headersSent) {
       res.status(500).json({ error: error.message });
     } else {
-      res.end(); // Tutup paksa kalau error di tengah jalan
+      res.end(); 
     }
   }
 }
