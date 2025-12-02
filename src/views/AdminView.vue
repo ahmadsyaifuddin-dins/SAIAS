@@ -41,6 +41,8 @@
                     :src="user.avatar_url" 
                     alt="Avatar"
                     class="w-9 h-9 rounded-full object-cover border border-gray-600 shadow-sm"
+                    referrerpolicy="no-referrer"
+                    @error="handleImageError(user.id)"
                   />
 
                   <div 
@@ -140,6 +142,7 @@ const users = ref([])
 const loading = ref(true)
 const selectedUser = ref(null)
 const chatLogs = ref([])
+const imageErrors = ref({})
 
 // Format tanggal
 const formatDate = (dateString) => {
@@ -154,6 +157,11 @@ const isOnlineRecently = (dateString) => {
   if (!dateString) return false
   const diff = new Date() - new Date(dateString)
   return diff < 86400000 
+}
+
+// Fungsi handler jika gambar gagal load
+const handleImageError = (userId) => {
+  imageErrors.value[userId] = true
 }
 
 // 1. Fetch Users
