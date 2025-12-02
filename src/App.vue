@@ -192,12 +192,12 @@ const handleNewMessage = async (userMsg) => {
     const recentHistory = chatHistory.value.slice(-10);
     const cleanHistory = recentHistory.map(msg => ({ role: msg.role, content: msg.content }));
     const userApiKey = localStorage.getItem('user_groq_key'); 
-
+    const userModel = localStorage.getItem('user_groq_model');
     // D. FETCH BACKEND
     const response = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: userMsg, history: cleanHistory, apiKey: userApiKey }),
+      body: JSON.stringify({ message: userMsg, history: cleanHistory, apiKey: userApiKey, model: userModel }),
     });
 
     const data = await response.json();

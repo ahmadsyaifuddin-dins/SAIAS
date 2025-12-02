@@ -13,8 +13,8 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
-  const { message, history, apiKey } = req.body;
-  const activeKey = apiKey || process.env.GROQ_API_KEY;
+const { message, history, apiKey, model } = req.body;
+const activeKey = apiKey || process.env.GROQ_API_KEY;
 
   if (!activeKey) {
     return res.status(500).json({ error: 'Server configuration error: No API Key found.' });
@@ -51,9 +51,12 @@ export default async function handler(req, res) {
     // Gabungkan data yang sudah bersih
     const conversation = [systemPrompt, ...cleanHistory, { role: 'user', content: message }];
 
+    // 2. Gunakan model dari parameter, kalau kosong pakai Default Llama 3.3
+    const selectedModel = model || 'llama-3.3-70b-versatile';
+
     const completion = await groq.chat.completions.create({
       messages: conversation,
-      model: 'llama-3.3-70b-versatile', 
+      model: selectedModel,
       temperature: 0.7,
       max_tokens: 1024,
     });
