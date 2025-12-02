@@ -1,0 +1,1 @@
+"Git Push buat simpan, NPM Run Deploy buat tayang."

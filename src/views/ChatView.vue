@@ -245,8 +245,8 @@ const handleNewMessage = async (userMsg) => {
           
           <div class="flex flex-col items-center mb-6 md:mb-10 opacity-80 md:opacity-60 transition-all">
             
-            <div class="bg-gray-800 p-3 md:p-4 rounded-2xl md:rounded-3xl mb-3 md:mb-4 animate-bounce shadow-xl shadow-emerald-900/10">
-              <img src="/vite.svg" alt="Logo" class="w-8 h-8 md:w-10 md:h-10 opacity-70 grayscale">
+            <div class="bg-gray-800 p-3 md:p-4 rounded-2xl md:rounded-3xl mb-3 md:mb-4 animate-bounce shadow-xl shadow-emerald-200/10">
+              <img src="/saias-new.png" alt="Logo" class="w-12 h-12 md:w-16 md:h-16 object-contain rounded-full">
             </div>
             
             <p class="font-bold text-lg md:text-xl text-white">Mulai Topik Baru</p>
