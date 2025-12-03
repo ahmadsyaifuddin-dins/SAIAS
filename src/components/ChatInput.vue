@@ -9,8 +9,7 @@ const props = defineProps({
 const text = ref('');
 const textareaRef = ref(null);
 
-// Placeholder responsif (Simpel di HP, Detail di Desktop)
-// Kita pakai logika sederhana: Kalau layar kecil, teks pendek.
+// Placeholder responsif
 const placeholderText = computed(() => {
   return window.innerWidth < 768 
     ? 'Ketik pesan...' 
@@ -21,7 +20,7 @@ const adjustHeight = () => {
   const el = textareaRef.value;
   if (el) {
     el.style.height = 'auto'; 
-    el.style.height = Math.min(el.scrollHeight, 160) + 'px'; // Max tinggi biar gak menuhin layar
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px'; // Max tinggi 160px
   }
 };
 
@@ -35,6 +34,18 @@ const handleSubmit = () => {
 };
 
 const handleEnter = (e) => {
+  // Cek apakah user di Mobile (Layar < 768px, breakpoint 'md' Tailwind)
+  const isMobile = window.innerWidth < 768;
+
+  if (isMobile) {
+    // JIKA MOBILE:
+    // Biarkan event berjalan normal (Enter = Baris Baru).
+    // Jangan panggil handleSubmit().
+    return;
+  }
+
+  // JIKA DESKTOP:
+  // Jika Shift tidak ditekan, cegah baris baru & kirim pesan.
   if (!e.shiftKey) {
     e.preventDefault();
     handleSubmit();
